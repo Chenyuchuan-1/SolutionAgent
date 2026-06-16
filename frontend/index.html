@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution Agent Studio</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar glass-panel">
+        <div class="brand-block">
+          <div class="brand-mark">SA</div>
+          <div>
+            <div class="brand-title">Solution Agent</div>
+            <div class="brand-subtitle">Research · Outline · Images</div>
+          </div>
+        </div>
+
+        <button class="new-run-btn" id="newRunBtn" data-i18n="newRun">+ 新建解决方案</button>
+
+        <div class="side-section">
+          <div class="section-title" data-i18n="historyTitle">历史记录</div>
+          <div class="history-list" id="historyList"></div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="hero glass-panel">
+          <div>
+            <div class="eyebrow">GPT-5.5 Planner + GPT Image Workflow</div>
+            <h1 data-i18n="heroTitle">面向政策、产业与技术调研的解决方案生成 Agent</h1>
+            <p data-i18n="heroDesc">
+              上传文档、输入目标和场景，Agent 先生成可编辑 Markdown 大纲，再生成连续一致的解决方案图片，并支持历史记录与单图对话式修改。
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language">EN</button>
+            <div class="hero-card">
+              <div class="pulse-dot"></div>
+              <span data-i18n="agentReady">Agent Ready</span>
+            </div>
+          </div>
+        </header>
+
+        <section class="feature-grid">
+          <article class="feature-card glass-panel">
+            <span class="feature-icon">01</span>
+            <h3 data-i18n="featureDocTitle">多文档解析</h3>
+            <p data-i18n="featureDocDesc">支持 PDF、Word、Markdown、CSV 等输入，PDF 通过 MinerU 服务 API 解析。</p>
+          </article>
+          <article class="feature-card glass-panel">
+            <span class="feature-icon">02</span>
+            <h3 data-i18n="featureResearchTitle">联网调研</h3>
+            <p data-i18n="featureResearchDesc">通过 Tavily、DuckDuckGo/SearXNG、政策站点和产业信息源构建证据链。</p>
+          </article>
+          <article class="feature-card glass-panel">
+            <span class="feature-icon">03</span>
+            <h3 data-i18n="featureOutlineTitle">大纲确认</h3>
+            <p data-i18n="featureOutlineDesc">先生成 todo 型方案大纲，用户可编辑 Markdown、表格、链接和 topic。</p>
+          </article>
+          <article class="feature-card glass-panel">
+            <span class="feature-icon">04</span>
+            <h3 data-i18n="featureImagesTitle">连续图片</h3>
+            <p data-i18n="featureImagesDesc">控制比例、风格一致性和图片数量，支持单张图片继续对话式修改。</p>
+          </article>
+          <article class="feature-card glass-panel">
+            <span class="feature-icon">05</span>
+            <h3 data-i18n="featureHistoryTitle">历史归档</h3>
+            <p data-i18n="featureHistoryDesc">每次运行保留输入、解析、检索、大纲、prompt、图片和单图修改版本。</p>
+          </article>
+        </section>
+
+        <section class="workspace-grid">
+          <section class="input-panel glass-panel">
+            <div class="panel-head">
+              <div>
+                <h2 data-i18n="inputTitle">输入需求</h2>
+                <p data-i18n="inputDesc">领域 / 目标 / 场景越明确，Agent 的调研和视觉化越稳定。</p>
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <label>
+                <span data-i18n="domainLabel">领域</span>
+                <input id="domainInput" data-i18n-placeholder="domainPlaceholder" placeholder="如：钙钛矿太阳能电池、智慧实验室、AI4Chem" />
+              </label>
+              <label>
+                <span data-i18n="goalLabel">目标</span>
+                <input id="goalInput" data-i18n-placeholder="goalPlaceholder" placeholder="如：形成产业落地解决方案" />
+              </label>
+              <label class="wide">
+                <span data-i18n="scenarioLabel">应用场景</span>
+                <input id="scenarioInput" data-i18n-placeholder="scenarioPlaceholder" placeholder="如：政府项目申报、企业汇报、科研平台设计" />
+              </label>
+            </div>
+
+            <label class="prompt-box">
+              <span data-i18n="promptLabel">文本型提示词</span>
+              <textarea id="promptInput" data-i18n-placeholder="promptPlaceholder" placeholder="描述你希望 Agent 解决的问题、受众、约束、输出形式、图片风格等。">请围绕 AI 化学实验室平台，调研近期政策、产业趋势和科研痛点，生成一个可用于汇报的解决方案，并输出 8 张连续风格一致的解决方案图片。</textarea>
+            </label>
+
+            <div class="upload-card" id="dropZone">
+              <div class="upload-icon">↑</div>
+              <div>
+                <strong data-i18n="uploadTitle">上传文档用于解析</strong>
+                <p data-i18n="uploadDesc">PDF / Word / Markdown / CSV / Excel，可一次上传多篇文献或项目材料。</p>
+              </div>
+              <input id="fileInput" type="file" multiple />
+            </div>
+            <div class="file-list" id="fileList"></div>
+
+            <div class="control-row">
+              <label class="slider-wrap">
+                <span><span data-i18n="topicCountLabel">Topic / 图片数量：</span><b id="topicValue">8</b></span>
+                <input id="topicSlider" type="range" min="5" max="15" value="8" />
+              </label>
+              <label class="aspect-select-wrap">
+                <span data-i18n="imageAspectLabel">图片比例</span>
+                <select id="imageAspectSelect" class="native-select-hidden">
+                  <option value="1:1" data-i18n="aspectSquare">方形 1:1</option>
+                  <option value="3:4" data-i18n="aspectPortrait34">竖版 3:4</option>
+                  <option value="9:16" data-i18n="aspectStory">故事版 9:16</option>
+                  <option value="4:3" data-i18n="aspectLandscape43">横版 4:3</option>
+                  <option value="16:9" data-i18n="aspectWide" selected>宽屏 16:9</option>
+                </select>
+                <div class="custom-select" data-select-target="imageAspectSelect"></div>
+              </label>
+              <label class="size-select-wrap">
+                <span data-i18n="imageSizeLabel">图片尺寸</span>
+                <select id="imageSizeSelect" class="native-select-hidden">
+                  <option value="1024x1024" data-i18n="sizeSquare">1024x1024 方形</option>
+                  <option value="1536x1024" data-i18n="sizeLandscape" selected>1536x1024 横版</option>
+                  <option value="1024x1536" data-i18n="sizePortrait">1024x1536 竖版</option>
+                  <option value="2048x2048" data-i18n="size2kSquare">2048x2048 2K 方形</option>
+                  <option value="2048x1152" data-i18n="size2kLandscape">2048x1152 2K 横版</option>
+                  <option value="3840x2160" data-i18n="size4kLandscape">3840x2160 4K 横版</option>
+                  <option value="2160x3840" data-i18n="size4kPortrait">2160x3840 4K 竖版</option>
+                </select>
+                <div class="custom-select" data-select-target="imageSizeSelect"></div>
+              </label>
+            </div>
+            <div class="action-row">
+              <button class="primary-btn" id="outlineBtn" data-i18n="outlineBtn">生成解决方案大纲</button>
+            </div>
+          </section>
+
+          <section class="outline-panel glass-panel">
+            <div class="panel-head sticky-head">
+              <div>
+                <h2 data-i18n="markdownTitle">可编辑 Markdown 大纲</h2>
+                <p data-i18n="markdownDesc">确认前可以修改 topic、表格、链接和具体实施路径。</p>
+              </div>
+              <div class="panel-actions">
+                <a class="download-link disabled" id="downloadMdLink" data-i18n="downloadMd" href="#" aria-disabled="true">下载 MD</a>
+                <a class="download-link disabled" id="downloadHtmlLink" data-i18n="downloadHtml" href="#" aria-disabled="true">下载 HTML</a>
+                <button class="secondary-btn" id="generateImagesBtn" data-i18n="generateImagesBtn" disabled>确认并生成解决方案图片</button>
+              </div>
+            </div>
+            <div class="outline-tabs">
+              <button class="tab active" data-tab="editor" data-i18n="editTab">编辑</button>
+              <button class="tab" data-tab="preview" data-i18n="previewTab">预览</button>
+            </div>
+            <textarea id="outlineEditor" class="markdown-editor" data-i18n-placeholder="outlinePlaceholder" placeholder="Agent 生成的大纲会显示在这里，可编辑。"></textarea>
+            <div id="outlinePreview" class="markdown-preview hidden"></div>
+          </section>
+        </section>
+
+        <section class="image-stage glass-panel" id="imageStage">
+          <div class="stage-head">
+            <div>
+              <div class="eyebrow">Visual Solution Viewer</div>
+              <h2 data-i18n="viewerTitle">连续方案图片可视化窗口</h2>
+            </div>
+            <div class="stage-actions">
+              <a class="download-link disabled" id="downloadCurrentImageLink" data-i18n="downloadImage" href="#" aria-disabled="true">下载当前图片</a>
+              <a class="download-link disabled" id="downloadAllImagesLink" data-i18n="downloadAllImages" href="#" aria-disabled="true">全部图片 ZIP</a>
+              <div class="stage-meta" id="stageMeta" data-i18n="notGenerated">尚未生成</div>
+            </div>
+          </div>
+
+          <div class="carousel-wrap">
+            <button class="nav-arrow left" id="prevImage" data-i18n-aria-label="prevImage" aria-label="上一张">‹</button>
+            <div class="image-card-shell">
+              <div class="image-index" id="imageIndex">00 / 00</div>
+              <img id="mainImage" alt="Solution preview" />
+              <div class="image-caption" id="imageCaption" data-i18n="waitingImages">等待生成解决方案图片</div>
+            </div>
+            <button class="nav-arrow right" id="nextImage" data-i18n-aria-label="nextImage" aria-label="下一张">›</button>
+          </div>
+
+          <div class="thumb-strip" id="thumbStrip"></div>
+
+          <div class="image-edit-chat">
+            <div class="chat-title" data-i18n="editImageTitle">对当前图片继续修改</div>
+            <div class="chat-messages" id="chatMessages">
+              <div class="message agent" data-i18n="chatHint">选择一张图片后，可以像 GPT 对话框一样输入修改建议，例如“把政策分析部分放大，加入产业链箭头”。</div>
+            </div>
+            <div class="chat-input-row">
+              <input id="imageEditInput" data-i18n-placeholder="imageEditPlaceholder" placeholder="输入对当前图片的修改要求..." />
+              <button id="sendEditBtn" data-i18n="sendEditBtn">发送修改</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop hidden" id="progressModal">
+      <div class="progress-modal glass-panel">
+        <div class="modal-orb"></div>
+        <h2 id="modalTitle" data-i18n="modalDefaultTitle">Agent 正在生成</h2>
+        <p id="modalSubtitle" data-i18n="modalDefaultSubtitle">正在规划任务...</p>
+        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="progress-steps" id="progressSteps"></div>
+      </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

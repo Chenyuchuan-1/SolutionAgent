@@ -1,0 +1,10 @@
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+python-multipart==0.0.20
+pydantic==2.11.7
+pydantic-settings==2.10.1
+python-dotenv==1.1.1
+openai>=1.100.0
+httpx>=0.28.0
+python-docx>=1.1.2
+openpyxl>=3.1.5
